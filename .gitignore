@@ -1,2 +1,8 @@
 .idea
 venv
+pyvenv.cfg
+Include
+Lib
+Scripts
+__pycache__/
+firebase-private-key.json
