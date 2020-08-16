@@ -5,4 +5,4 @@ Include
 Lib
 Scripts
 __pycache__/
-firebase-private-key.json
+client_secrets.json

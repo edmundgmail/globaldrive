@@ -18,6 +18,7 @@ import requests
 # Internal imports
 from db import init_db_command
 from user import User
+from googledrive import openGoogleDrive
 
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `app.py`.
@@ -52,6 +53,14 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 def load_user(user_id):
     return User.get(user_id)
 
+@app.route("/oauth2callback")
+def oauth2callback():
+    pass
+
+@app.route("/mydrive")
+def openMyDrive():
+    openGoogleDrive()
+
 @app.route("/")
 def index():
     if current_user.is_authenticated:
@@ -59,6 +68,7 @@ def index():
             "<p>Hello, {}! You're logged in! Email: {}</p>"
             "<div><p>Google Profile Picture:</p>"
             '<img src="{}" alt="Google profile pic"></img></div>'
+            '<a class="button" href="/mydrive">MyDrive</a>'
             '<a class="button" href="/logout">Logout</a>'.format(
                 current_user.name, current_user.email, current_user.profile_pic
             )
@@ -133,6 +143,7 @@ def callback():
 
     # Send user back to homepage
     return redirect(url_for("index"))
+
 
 @app.route("/logout")
 @login_required
