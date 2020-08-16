@@ -23,16 +23,18 @@ from googledrive import openGoogleDrive
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `app.py`.
 # Configuration
+
 app = Flask(__name__)
+with open('client_secrets.json') as json_file:
+    credentials = json.load(json_file)
+    GOOGLE_CLIENT_ID = credentials.get("web", {"web", None}).get("client_id", None)
+    GOOGLE_CLIENT_SECRET = credentials.get("web", {"web", None}).get("client_secret", None)
+
 app.secret_key = os.environ.get("SECRET_KEY") or os.urandom(24)
 
-GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", None)
-GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", None)
 GOOGLE_DISCOVERY_URL = (
     "https://accounts.google.com/.well-known/openid-configuration"
 )
-
-
 
 # User session management setup
 # https://flask-login.readthedocs.io/en/latest
