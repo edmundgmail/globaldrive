@@ -27,7 +27,7 @@ gdrive = Blueprint('gdrive', __name__, template_folder='templates')
 def test_api_request(accountname):
   accountname = base64.b64decode(accountname).decode('ascii')
   if 'credentials.'+accountname not in flask.session:
-    return flask.redirect(flask.url_for('gdrive.authorize'))
+    return flask.redirect(flask.url_for('gdrive.authorize', accountname=base64.b64encode(accountname.encode('ascii')).decode('ascii')))
 
   # Load credentials from the session.
   credentials = google.oauth2.credentials.Credentials(
@@ -46,8 +46,9 @@ def test_api_request(accountname):
   return flask.jsonify(**files)
 
 
-@gdrive.route('/authorize')
-def authorize():
+@gdrive.route('/authorize/<accountname>')
+def authorize(accountname):
+  accountname = base64.b64decode(accountname).decode('ascii')
   # Create flow instance to manage the OAuth 2.0 Authorization Grant Flow steps.
   flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
       CLIENT_SECRETS_FILE, scopes=SCOPES)
@@ -67,7 +68,7 @@ def authorize():
 
   # Store the state so the callback can verify the auth server response.
   flask.session['state'] = state
-
+  flask.session['accountname']=accountname
   return flask.redirect(authorization_url)
 
 
@@ -76,10 +77,11 @@ def oauth2callback():
   # Specify the state when creating the flow in the callback so that it can
   # verified in the authorization server response.
   state = flask.session['state']
+  accountname=flask.session['accountname']
 
   flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
       CLIENT_SECRETS_FILE, scopes=SCOPES, state=state)
-  flow.redirect_uri = flask.url_for('gdrive.oauth2callback', _external=True)
+  flow.redirect_uri = flask.url_for('gdrive.oauth2callback',  _external=True)
 
   # Use the authorization server's response to fetch the OAuth 2.0 tokens.
   authorization_response = flask.request.url
@@ -90,7 +92,9 @@ def oauth2callback():
   #              credentials in a persistent database instead.
   credentials = flow.credentials
   idinfo = id_token.verify_oauth2_token(credentials.id_token, requests.Request(), credentials.client_id)
-  accountname = idinfo['email']
+  accountname1 = idinfo['email']
+  if(accountname!=accountname1):
+      raise TypeError("The account authorized is not equal to the account asked for")
 
   flask.session['credentials.'+accountname] = credentials_to_dict(credentials)
 

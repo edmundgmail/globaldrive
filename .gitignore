@@ -6,4 +6,4 @@ Lib
 Scripts
 __pycache__/
 client_secrets.json
-sqlite_db
+sqlite_db*
