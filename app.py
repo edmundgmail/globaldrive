@@ -1,7 +1,8 @@
-from flask import Flask
 import json
 import os
 import sqlite3
+
+import requests
 # Third-party libraries
 from flask import Flask, redirect, request, url_for
 from flask_login import (
@@ -11,21 +12,21 @@ from flask_login import (
     login_user,
     logout_user,
 )
-
 from oauthlib.oauth2 import WebApplicationClient
-import requests
 
 # Internal imports
 from db import init_db_command
 from user import User
-from googledrive import openGoogleDrive
-
+from gdrive import gdrive
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `app.py`.
 # Configuration
+CLIENT_SECRETS_FILE="client_secrets.json"
 
 app = Flask(__name__)
-with open('client_secrets.json') as json_file:
+app.register_blueprint(gdrive)
+
+with open(CLIENT_SECRETS_FILE) as json_file:
     credentials = json.load(json_file)
     GOOGLE_CLIENT_ID = credentials.get("web", {"web", None}).get("client_id", None)
     GOOGLE_CLIENT_SECRET = credentials.get("web", {"web", None}).get("client_secret", None)
@@ -54,14 +55,6 @@ client = WebApplicationClient(GOOGLE_CLIENT_ID)
 @login_manager.user_loader
 def load_user(user_id):
     return User.get(user_id)
-
-@app.route("/oauth2callback")
-def oauth2callback():
-    pass
-
-@app.route("/mydrive")
-def openMyDrive():
-    openGoogleDrive()
 
 @app.route("/")
 def index():
@@ -157,4 +150,6 @@ if __name__ == 'app':
     # Used when running locally only. When deploying to Google App
     # Engine, a webserver process such as Gunicorn will serve the app. This
     # can be configured by adding an `entrypoint` to app.yaml.
-    app.run(host='localhost', port=5000, debug=True,ssl_context="adhoc")
+    os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+    os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
+    app.run(host='localhost', port=8080, debug=True)
