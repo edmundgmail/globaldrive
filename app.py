@@ -17,7 +17,7 @@ from oauthlib.oauth2 import WebApplicationClient
 # Internal imports
 from db import init_db_command
 from user import User
-#from gdrive import gdrive
+from gdrive import gdrive
 from onedrive import onedrive
 
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
@@ -26,8 +26,8 @@ from onedrive import onedrive
 CLIENT_SECRETS_FILE="client_secrets.json"
 
 app = Flask(__name__)
-#app.register_blueprint(gdrive)
-app.register_blueprint(onedrive)
+app.register_blueprint(gdrive, url_prefix="/gdrive")
+app.register_blueprint(onedrive, url_prefix="/onedrive")
 
 with open(CLIENT_SECRETS_FILE) as json_file:
     credentials = json.load(json_file)

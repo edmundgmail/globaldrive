@@ -21,10 +21,10 @@ SCOPES = ['https://www.googleapis.com/auth/drive.metadata.readonly']
 API_SERVICE_NAME = 'drive'
 API_VERSION = 'v2'
 
-gdrive = Blueprint('gdrive', __name__, template_folder='templates')
+gdrive = Blueprint('gdrive', __name__)
 
-@gdrive.route('/mydrive/<accountname>')
-def test_api_request(accountname):
+@gdrive.route('/<accountname>')
+def bucketinfo(accountname):
   accountname = base64.b64decode(accountname).decode('ascii')
   if 'credentials.'+accountname not in flask.session:
     return flask.redirect(flask.url_for('gdrive.authorize', accountname=base64.b64encode(accountname.encode('ascii')).decode('ascii')))
@@ -72,7 +72,7 @@ def authorize(accountname):
   return flask.redirect(authorization_url)
 
 
-@gdrive.route('/oauth2callback')
+@gdrive.route('/callback')
 def oauth2callback():
   # Specify the state when creating the flow in the callback so that it can
   # verified in the authorization server response.
@@ -98,7 +98,7 @@ def oauth2callback():
 
   flask.session['credentials.'+accountname] = credentials_to_dict(credentials)
 
-  return flask.redirect(flask.url_for('gdrive.test_api_request', accountname=base64.b64encode(accountname.encode('ascii')).decode('ascii')))
+  return flask.redirect(flask.url_for('gdrive.bucketinfo', accountname=base64.b64encode(accountname.encode('ascii')).decode('ascii')))
 
 
 @gdrive.route('/revoke/<accountname>')
@@ -117,9 +117,9 @@ def revoke(accountname):
 
   status_code = getattr(revoke, 'status_code')
   if status_code == 200:
-    return('Credentials successfully revoked.' + print_index_table())
+    return('Credentials successfully revoked.')
   else:
-    return('An error occurred.' + print_index_table())
+    return('An error occurred.')
 
 
 @gdrive.route('/clear/<accountname>')
@@ -127,8 +127,7 @@ def clear_credentials(accountname):
   accountname = base64.b64decode(accountname).decode('ascii')
   if 'credentials.'+accountname in flask.session:
     del flask.session['credentials.'+accountname]
-  return ('Credentials have been cleared.<br><br>' +
-          print_index_table())
+  return ('Credentials have been cleared.')
 
 
 def credentials_to_dict(credentials):
@@ -138,37 +137,3 @@ def credentials_to_dict(credentials):
           'client_id': credentials.client_id,
           'client_secret': credentials.client_secret,
           'scopes': credentials.scopes}
-
-def print_index_table():
-  return ('<table>' +
-          '<tr><td><a href="/test">Test an API request</a></td>' +
-          '<td>Submit an API request and see a formatted JSON response. ' +
-          '    Go through the authorization flow if there are no stored ' +
-          '    credentials for the user.</td></tr>' +
-          '<tr><td><a href="/authorize">Test the auth flow directly</a></td>' +
-          '<td>Go directly to the authorization flow. If there are stored ' +
-          '    credentials, you still might not be prompted to reauthorize ' +
-          '    the application.</td></tr>' +
-          '<tr><td><a href="/revoke">Revoke current credentials</a></td>' +
-          '<td>Revoke the access token associated with the current user ' +
-          '    session. After revoking credentials, if you go to the test ' +
-          '    page, you should see an <code>invalid_grant</code> error.' +
-          '</td></tr>' +
-          '<tr><td><a href="/clear">Clear Flask session credentials</a></td>' +
-          '<td>Clear the access token currently stored in the user session. ' +
-          '    After clearing the token, if you <a href="/test">test the ' +
-          '    API request</a> again, you should go back to the auth flow.' +
-          '</td></tr></table>')
-
-
-if __name__ == '__main__':
-  # When running locally, disable OAuthlib's HTTPs verification.
-  # ACTION ITEM for developers:
-  #     When running in production *do not* leave this option enabled.
-  os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
-  os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
-
-
-  # Specify a hostname and port that are set as a valid redirect URI
-  # for your API project in the Google API Console.
-  gdrive.run('localhost', 8080, debug=True, ssl_context="adhoc")
