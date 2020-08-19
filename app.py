@@ -155,4 +155,4 @@ if __name__ == 'app':
     # can be configured by adding an `entrypoint` to app.yaml.
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
-    app.run(host='localhost', port=8000, debug=True)
+    app.run(host='localhost', port=8080, debug=True)

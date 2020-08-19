@@ -35,7 +35,7 @@ def authorize(accountname):
   return flask.redirect(sign_in_url)
 
 
-@onedrive.route('/callback')
+@onedrive.route('/onedrive/callback')
 def oauth2callback():
   # Specify the state when creating the flow in the callback so that it can
   # verified in the authorization server response.
