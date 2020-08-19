@@ -17,14 +17,17 @@ from oauthlib.oauth2 import WebApplicationClient
 # Internal imports
 from db import init_db_command
 from user import User
-from gdrive import gdrive
+#from gdrive import gdrive
+from onedrive import onedrive
+
 # If `entrypoint` is not defined in app.yaml, App Engine will look for an app
 # called `app` in `app.py`.
 # Configuration
 CLIENT_SECRETS_FILE="client_secrets.json"
 
 app = Flask(__name__)
-app.register_blueprint(gdrive)
+#app.register_blueprint(gdrive)
+app.register_blueprint(onedrive)
 
 with open(CLIENT_SECRETS_FILE) as json_file:
     credentials = json.load(json_file)
@@ -152,4 +155,4 @@ if __name__ == 'app':
     # can be configured by adding an `entrypoint` to app.yaml.
     os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
     os.environ['OAUTHLIB_RELAX_TOKEN_SCOPE'] = '1'
-    app.run(host='localhost', port=8080, debug=True)
+    app.run(host='localhost', port=8000, debug=True)
